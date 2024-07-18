@@ -17,7 +17,7 @@ build:
 # Start containers in the background
 up:
 	@echo "Starting Docker containers..."
-	docker compose --env-file $(ENV_FILE) --file $(DOCKER_COMPOSE_FILE) --project-name $(PROJECT_NAME) up --detach
+	docker compose --env-file $(ENV_FILE) --file $(DOCKER_COMPOSE_FILE) --project-name $(PROJECT_NAME) up --build --detach
 
 # Stop and remove containers
 down:
@@ -32,7 +32,7 @@ logs:
 # Clean up unused data
 clean:
 	@echo "Cleaning up unused Docker data..."
-	docker system prune --force
+	docker system prune --all --force
 
 # Start development mode with file watching
 develop:

@@ -4,10 +4,15 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: backend
+    depends_on:
+      database:
+        condition: service_healthy
+        restart: true
     ports:
       - "${RUN_PORT}:8080"
     environment:
       RUN_ADDRESS: ${RUN_ADDRESS}
+      DATABASE_URI: ${DATABASE_URI}
     develop:
       watch:
         - action: rebuild
@@ -16,3 +21,20 @@ services:
             - ./**/*.go
             - ./go.mod
             - ./go.sum
+
+  database:
+    image: postgres:16.3
+    container_name: database
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - ./db/data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
