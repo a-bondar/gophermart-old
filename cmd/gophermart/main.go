@@ -24,7 +24,12 @@ func Run() error {
 		return fmt.Errorf("unable to connect to database: %w", err)
 	}
 
-	defer conn.Close(context.Background())
+	defer func() {
+		err = conn.Close(context.Background())
+		if err != nil {
+			log.Printf("unable to close database connection: %v", err)
+		}
+	}()
 
 	err = conn.Ping(context.Background())
 	if err != nil {
@@ -43,5 +48,10 @@ func Run() error {
 
 	log.Printf("Starting server on %s", cfg.RunAddr)
 
-	return http.ListenAndServe(cfg.RunAddr, mux)
+	err = http.ListenAndServe(cfg.RunAddr, mux)
+	if err != nil {
+		return fmt.Errorf("unable to start server: %w", err)
+	}
+
+	return nil
 }
