@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/a-bondar/gophermart/internal/config"
+	"github.com/jackc/pgx/v5"
 )
 
 func main() {
@@ -16,12 +19,39 @@ func main() {
 func Run() error {
 	cfg := config.NewConfig()
 	mux := http.NewServeMux()
+	conn, err := pgx.Connect(context.Background(), cfg.DatabaseURI)
+	if err != nil {
+		return fmt.Errorf("unable to connect to database: %w", err)
+	}
 
-	rh := http.RedirectHandler("http://example.org", 307)
+	defer func() {
+		err = conn.Close(context.Background())
+		if err != nil {
+			log.Printf("unable to close database connection: %v", err)
+		}
+	}()
 
-	mux.Handle("/foo", rh)
+	err = conn.Ping(context.Background())
+	if err != nil {
+		return fmt.Errorf("unable to ping database: %w", err)
+	}
 
-	log.Printf("Starting serve on %s", cfg.RunAddr)
+	mux.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
+		err := conn.Ping(r.Context())
+		if err != nil {
+			http.Error(w, "database is not available", http.StatusInternalServerError)
+			return
+		}
 
-	return http.ListenAndServe(cfg.RunAddr, mux)
+		w.WriteHeader(http.StatusOK)
+	})
+
+	log.Printf("Starting server on %s", cfg.RunAddr)
+
+	err = http.ListenAndServe(cfg.RunAddr, mux)
+	if err != nil {
+		return fmt.Errorf("unable to start server: %w", err)
+	}
+
+	return nil
 }

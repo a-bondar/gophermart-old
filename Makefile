@@ -17,7 +17,7 @@ build:
 # Start containers in the background
 up:
 	@echo "Starting Docker containers..."
-	docker compose --env-file $(ENV_FILE) --file $(DOCKER_COMPOSE_FILE) --project-name $(PROJECT_NAME) up --detach
+	docker compose --env-file $(ENV_FILE) --file $(DOCKER_COMPOSE_FILE) --project-name $(PROJECT_NAME) up --build --detach
 
 # Stop and remove containers
 down:
@@ -32,9 +32,14 @@ logs:
 # Clean up unused data
 clean:
 	@echo "Cleaning up unused Docker data..."
-	docker system prune --force
+	docker system prune --all --force
 
 # Start development mode with file watching
 develop:
 	@echo "Starting development mode with file watching..."
 	docker compose --env-file $(ENV_FILE) --file $(DOCKER_COMPOSE_FILE) --project-name $(PROJECT_NAME) up --watch
+
+# Lint the code
+lint:
+	@echo "Running linter..."
+	docker run -t --rm -v $(shell pwd):/app -w /app golangci/golangci-lint:v1.59.1 golangci-lint run -v --fix
