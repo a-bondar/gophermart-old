@@ -38,3 +38,8 @@ clean:
 develop:
 	@echo "Starting development mode with file watching..."
 	docker compose --env-file $(ENV_FILE) --file $(DOCKER_COMPOSE_FILE) --project-name $(PROJECT_NAME) up --watch
+
+# Lint the code
+lint:
+	@echo "Running linter..."
+	docker run -t --rm -v $(shell pwd):/app -w /app golangci/golangci-lint:v1.59.1 golangci-lint run -v --fix

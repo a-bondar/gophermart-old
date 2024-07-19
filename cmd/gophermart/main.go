@@ -3,10 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/a-bondar/gophermart/internal/config"
-	"github.com/jackc/pgx/v5"
 	"log"
 	"net/http"
+
+	"github.com/a-bondar/gophermart/internal/config"
+	"github.com/jackc/pgx/v5"
 )
 
 func main() {
